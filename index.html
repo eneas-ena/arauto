@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0F1B33">
-<title>Arauto — Painel de Transmissão</title>
+<title>Arauto — Gravador de Aulas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
 <!-- Login padrão (copie o porteiro.js de outro repositório seu para este) -->
@@ -13,69 +12,78 @@
 <style>
   :root{
     --navy:#0F1B33; --gold:#C9A227;
-    --bg:#0F1B33; --card:#17264a; --card2:#1e3160; --text:#f3f1ea; --muted:#9fb0d0;
-    --line:#2b3f6e; --red:#d93636; --green:#2fae5f;
+    --bg:#0b1428; --card:#15233f; --card2:#1d2f55; --text:#f3f1ea; --muted:#9fb0d0;
+    --line:#2b3f6e; --red:#d93636; --green:#2fae5f; --palco:#060c19;
   }
-  body.claro{
-    --bg:#f4f1e8; --card:#ffffff; --card2:#ece6d3; --text:#0F1B33; --muted:#5b6785; --line:#d9d2bd;
-  }
+  body.claro{ --bg:#f4f1e8; --card:#ffffff; --card2:#ece6d3; --text:#0F1B33; --muted:#5b6785; --line:#d9d2bd; --palco:#e4ddc9; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;touch-action:manipulation}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-       -webkit-user-select:none;user-select:none;transition:background .2s,color .2s}
-  button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+       -webkit-user-select:none;user-select:none;display:flex;flex-direction:column}
+  button,select{font-family:inherit;touch-action:manipulation}
+  button{cursor:pointer}
 
-  header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
-  .marca{font-family:Cinzel,serif;font-weight:700;font-size:22px;color:var(--gold);letter-spacing:2px}
+  /* barra do topo */
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .marca{font-family:Cinzel,serif;font-weight:700;font-size:21px;color:var(--gold);letter-spacing:2px}
   .versao{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:2px 8px}
   .espaco{flex:1}
-  .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
-  .bolinha{width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(217,54,54,.2)}
-  .status.ok .bolinha{background:var(--green);box-shadow:0 0 0 3px rgba(47,174,95,.25)}
-  .icone{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:20px}
+  .rec{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums;font-size:18px;font-weight:600;
+       background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px}
+  .rec .ponto{width:12px;height:12px;border-radius:50%;background:var(--muted)}
+  .rec.gravando .ponto{background:var(--red);animation:pisca 1s infinite}
+  .rec.pausado .ponto{background:var(--gold)}
+  @keyframes pisca{50%{opacity:.25}}
+  .aspecto{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .aspecto button{border:none;background:none;color:var(--muted);padding:8px 12px;font-weight:600;font-size:14px}
+  .aspecto button.ativo{background:var(--gold);color:var(--navy)}
+  .aspecto button:disabled{cursor:not-allowed;opacity:.5}
+  .medidor{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+  .barras{display:flex;gap:3px;align-items:flex-end;height:18px}
+  .barras i{width:5px;height:100%;border-radius:2px;background:var(--line)}
+  .barras i.on{background:var(--green)} .barras i.on.alto{background:var(--gold)} .barras i.on.pico{background:var(--red)}
+  .icone{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px}
 
-  main{padding:18px;max-width:1100px;margin:0 auto}
-  h2{font-family:Cinzel,serif;font-size:15px;letter-spacing:1.5px;color:var(--gold);margin:6px 0 12px}
+  /* corpo */
+  .corpo{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;padding:16px;min-height:0}
+  .esq{display:flex;flex-direction:column;gap:14px;min-height:0}
+  .palco{flex:1;min-height:240px;background:var(--palco);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+  #tela{max-width:100%;max-height:calc(100vh - 290px);width:auto;height:auto;border-radius:6px;background:#000;touch-action:none}
+  #tela.arrastavel{cursor:grab}
+  .cenas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cena{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:600}
+  .cena.ativa{border-color:var(--gold)}
+  .mini{width:84px;height:48px;border-radius:5px;background:#24365f;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .mini .t{position:absolute;background:#8ea4cf} .mini .c{position:absolute;background:var(--gold);border-radius:2px}
 
-  .cenas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px}
-  .cena{background:var(--card);color:var(--text);border:2px solid var(--line);border-radius:16px;min-height:110px;
-        font-size:20px;font-weight:600;padding:14px;position:relative;transition:transform .08s,border-color .15s}
-  .cena:active{transform:scale(.97)}
-  .cena.noar{border-color:var(--red);background:linear-gradient(180deg,rgba(217,54,54,.22),var(--card))}
-  .cena.noar::after{content:"NO AR";position:absolute;top:8px;right:10px;font-size:11px;font-weight:800;
-        background:var(--red);color:#fff;padding:2px 7px;border-radius:6px;letter-spacing:1px}
-  .vazio{color:var(--muted);font-size:15px;padding:20px;border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
-
-  .controles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .ctrl{border:none;border-radius:16px;min-height:96px;font-size:20px;font-weight:700;color:#fff;background:var(--card2);
-        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-  body.claro .ctrl{color:var(--text)}
-  .ctrl .tempo{font-size:15px;font-weight:500;opacity:.85;font-variant-numeric:tabular-nums}
-  .ctrl.ativo{background:var(--red);color:#fff;animation:pulsa 1.6s infinite}
-  @keyframes pulsa{50%{box-shadow:0 0 0 6px rgba(217,54,54,.25)}}
-  .ctrl:disabled,.cena:disabled{opacity:.4;cursor:not-allowed}
+  .dir{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .bloco label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;letter-spacing:.5px}
+  .bloco select,.bloco .botao-tela{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:14px;text-align:left}
+  .bloco input[type=range]{width:100%}
+  .dica-p{font-size:12px;color:var(--muted);line-height:1.4;margin-top:4px}
+  .grande{border:none;border-radius:14px;padding:16px;font-size:18px;font-weight:700;color:#fff;background:var(--red);width:100%}
+  .grande.parar{background:#7a1f1f}
+  .media{border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;font-weight:600;background:var(--card);color:var(--text);width:100%}
+  .media:disabled,.grande:disabled{opacity:.4;cursor:not-allowed}
+  .media.ouro{border-color:var(--gold);color:var(--gold)}
+  .rodape-dir{margin-top:auto;display:flex;flex-direction:column;gap:10px}
 
   /* janelas */
-  .fundo{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+  .fundo{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
   .fundo.aberto{display:flex}
-  .janela{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px}
-  .janela h3{font-family:Cinzel,serif;color:var(--gold);margin:0 0 14px}
-  .janela label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
-  .janela input{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);-webkit-user-select:text;user-select:text}
-  .janela p{line-height:1.5}
-  .linha{display:flex;gap:10px;margin-top:18px}
-  .btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;font-weight:600}
+  .janela{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:460px}
+  .janela h3{font-family:Cinzel,serif;color:var(--gold);margin:0 0 12px}
+  .janela p{line-height:1.5;margin:6px 0}
+  .janela textarea{width:100%;min-height:140px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:10px;font-size:14px;font-family:ui-monospace,Menlo,monospace;-webkit-user-select:text;user-select:text}
+  .linha{display:flex;gap:10px;margin-top:16px}
+  .btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:15px;font-weight:600}
   .btn.ouro{background:var(--gold);border-color:var(--gold);color:var(--navy)}
-  .btn.vermelho{background:var(--red);border-color:var(--red);color:#fff}
-  .dica{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
-
-  .aviso{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--gold);color:var(--navy);
-         padding:12px 16px;border-radius:14px;font-weight:600;display:none;gap:12px;align-items:center;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+  .aviso{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--gold);color:var(--navy);padding:12px 16px;border-radius:14px;font-weight:600;display:none;gap:12px;align-items:center;z-index:20}
   .aviso.aberto{display:flex}
   .aviso button{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-weight:700}
-  .msg{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--card2);color:var(--text);border:1px solid var(--line);
-       padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:30}
+  .msg{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--card2);color:var(--text);border:1px solid var(--gold);padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:30}
   .msg.aberto{display:block}
+  @media (max-width:900px){ .corpo{grid-template-columns:1fr} .cenas{grid-template-columns:repeat(2,1fr)} }
 </style>
 </head>
 <body>
@@ -84,52 +92,71 @@
   <div class="marca">ARAUTO</div>
   <div class="versao" id="versao"></div>
   <div class="espaco"></div>
-  <div class="status" id="status"><span class="bolinha"></span><span id="statusTxt">Desconectado</span></div>
+  <div class="rec" id="rec"><span class="ponto"></span><span id="relogio">00:00:00</span></div>
+  <div class="aspecto"><button id="a169" class="ativo">16:9</button><button id="a916">9:16</button></div>
+  <div class="medidor">🎙️<div class="barras" id="barras"></div></div>
+  <div class="espaco"></div>
   <button class="icone" id="btnTema" title="Modo claro/escuro">☀️</button>
   <button class="icone" id="btnAjustes" title="Ajustes">⚙️</button>
 </header>
 
-<main>
-  <h2>Cenas</h2>
-  <div class="cenas" id="cenas"><div class="vazio">Conecte ao OBS para ver as cenas.</div></div>
-
-  <h2>Controles</h2>
-  <div class="controles">
-    <button class="ctrl" id="btnGravar" disabled><span id="gravarTxt">● Gravar</span><span class="tempo" id="gravarTempo">00:00:00</span></button>
-    <button class="ctrl" id="btnTransmitir" disabled><span id="transmitirTxt">📡 Transmitir</span><span class="tempo" id="transmitirTempo">00:00:00</span></button>
+<div class="corpo">
+  <div class="esq">
+    <div class="palco"><canvas id="tela" width="1920" height="1080"></canvas></div>
+    <div class="cenas" id="cenas">
+      <button class="cena" data-l="cam"><div class="mini"><div class="c" style="inset:6px 20px"></div></div>Só câmera</button>
+      <button class="cena ativa" data-l="pip"><div class="mini"><div class="t" style="inset:5px"></div><div class="c" style="right:7px;bottom:7px;width:26px;height:15px"></div></div>Tela + câmera</button>
+      <button class="cena" data-l="split"><div class="mini"><div class="t" style="left:4px;top:10px;width:48px;height:28px"></div><div class="c" style="right:4px;top:10px;width:26px;height:28px"></div></div>Tela dividida</button>
+      <button class="cena" data-l="screen"><div class="mini"><div class="t" style="inset:5px"></div></div>Só tela</button>
+    </div>
   </div>
-</main>
 
-<!-- Ajustes -->
-<div class="fundo" id="janAjustes">
-  <div class="janela">
-    <h3>Ajustes</h3>
-    <label>Endereço do OBS</label>
-    <input id="cfgHost" placeholder="localhost">
-    <label>Porta</label>
-    <input id="cfgPorta" placeholder="4455" inputmode="numeric">
-    <label>Senha do WebSocket</label>
-    <input id="cfgSenha" type="password" placeholder="senha mostrada no OBS">
-    <div class="linha">
-      <button class="btn" id="cfgFechar">Fechar</button>
-      <button class="btn ouro" id="cfgSalvar">Salvar e conectar</button>
+  <div class="dir">
+    <div class="bloco"><label>CÂMERA</label><select id="selCam"></select></div>
+    <div class="bloco"><label>MICROFONE</label><select id="selMic"></select></div>
+    <div class="bloco"><label>TELA</label><button class="botao-tela" id="btnTela">🖥️ Escolher tela ou janela</button></div>
+    <div class="bloco" id="blocoTam"><label>TAMANHO DA SUA JANELA</label><input type="range" id="tamCam" min="15" max="45" step="1">
+      <div class="dica-p">Arraste a sua janela no monitor para mudar de canto.</div></div>
+    <div class="rodape-dir">
+      <button class="media ouro" id="btnMini">🪟 Mini painel flutuante</button>
+      <button class="grande" id="btnGravar">● Gravar</button>
+      <div class="linha" style="margin-top:0">
+        <button class="media" id="btnPausar" disabled>⏸ Pausar</button>
+        <button class="media" id="btnMarcar" disabled>🔖 Capítulo</button>
+      </div>
     </div>
-    <div class="linha">
-      <button class="btn" id="btnAtualizarApp">🔄 Atualizar app</button>
-    </div>
-    <div class="dica">No OBS: Ferramentas → Configurações do servidor WebSocket → "Mostrar informações de conexão". Use o Chrome neste mesmo Mac.</div>
   </div>
 </div>
 
-<!-- Confirmação -->
-<div class="fundo" id="janConfirma">
+<!-- início -->
+<div class="fundo aberto" id="janInicio">
   <div class="janela">
-    <h3 id="confTitulo">Confirmar</h3>
-    <p id="confTexto"></p>
-    <div class="linha">
-      <button class="btn" id="confNao">Cancelar</button>
-      <button class="btn vermelho" id="confSim">Confirmar</button>
+    <h3>Bem-vindo ao Arauto</h3>
+    <p>Para começar, o navegador vai pedir permissão para usar a câmera e o microfone.</p>
+    <div class="linha"><button class="btn ouro" id="btnAtivar">Ativar câmera e microfone</button></div>
+  </div>
+</div>
+
+<!-- ajustes -->
+<div class="fundo" id="janAjustes">
+  <div class="janela">
+    <h3>Ajustes</h3>
+    <p style="font-size:14px;color:var(--muted)">Formato de gravação: <b id="fmtInfo">—</b></p>
+    <p style="font-size:14px;color:var(--muted)">Os vídeos vão para a pasta <b>Downloads</b> do Mac (ou onde o Chrome estiver configurado para salvar).</p>
+    <div class="linha"><button class="btn" id="btnAtualizarApp">🔄 Atualizar app</button><button class="btn ouro" id="ajFechar">Fechar</button></div>
+  </div>
+</div>
+
+<!-- fim da gravação -->
+<div class="fundo" id="janFim">
+  <div class="janela">
+    <h3>Gravação salva</h3>
+    <p id="fimArquivo"></p>
+    <div id="fimCap">
+      <p style="font-size:14px;color:var(--muted)">Capítulos para colar na descrição do YouTube (pode editar os nomes):</p>
+      <textarea id="capTexto"></textarea>
     </div>
+    <div class="linha"><button class="btn" id="btnCopiar">Copiar capítulos</button><button class="btn ouro" id="fimFechar">Fechar</button></div>
   </div>
 </div>
 
@@ -137,202 +164,326 @@
 <div class="msg" id="msg"></div>
 
 <script>
-const VERSAO = '0.1.0';
-
-/* ---------- utilidades ---------- */
+const VERSAO = '0.2.0';
 const $ = id => document.getElementById(id);
 $('versao').textContent = 'v' + VERSAO;
-function mensagem(t, ms=2500){ const m=$('msg'); m.textContent=t; m.classList.add('aberto'); clearTimeout(m._t); m._t=setTimeout(()=>m.classList.remove('aberto'),ms); }
-function fmt(ms){ const s=Math.floor(ms/1000); return [s/3600,(s%3600)/60,s%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':'); }
+function mensagem(t, ms=2600){ const m=$('msg'); m.textContent=t; m.classList.add('aberto'); clearTimeout(m._t); m._t=setTimeout(()=>m.classList.remove('aberto'),ms); }
+const guardar = (k,v) => { try{ localStorage.setItem('arauto-'+k, JSON.stringify(v)); }catch(e){} };
+const ler = (k,pad) => { try{ const v=localStorage.getItem('arauto-'+k); return v===null?pad:JSON.parse(v); }catch(e){ return pad; } };
 
 /* ---------- tema sol/lua ---------- */
-function aplicarTema(t){ document.body.classList.toggle('claro', t==='claro'); $('btnTema').textContent = t==='claro' ? '🌙' : '☀️'; }
-let tema = localStorage.getItem('arauto-tema') || 'escuro';
-aplicarTema(tema);
-$('btnTema').onclick = () => { tema = tema==='claro' ? 'escuro' : 'claro'; localStorage.setItem('arauto-tema', tema); aplicarTema(tema); };
+let tema = ler('tema','escuro');
+function aplicarTema(){ document.body.classList.toggle('claro', tema==='claro'); $('btnTema').textContent = tema==='claro' ? '🌙' : '☀️'; }
+aplicarTema();
+$('btnTema').onclick = () => { tema = tema==='claro'?'escuro':'claro'; guardar('tema',tema); aplicarTema(); };
 
-/* ---------- impedir zoom por duplo toque (iPad) ---------- */
-let ultimoToque = 0;
-document.addEventListener('touchend', e => { const a=Date.now(); if(a-ultimoToque<350) e.preventDefault(); ultimoToque=a; }, {passive:false});
-document.addEventListener('gesturestart', e => e.preventDefault());
+/* ---------- sem zoom por duplo toque ---------- */
+let ultimoToque=0;
+document.addEventListener('touchend', e=>{ const a=Date.now(); if(a-ultimoToque<350) e.preventDefault(); ultimoToque=a; }, {passive:false});
+document.addEventListener('gesturestart', e=>e.preventDefault());
 
-/* ---------- atualização do app ---------- */
+/* ---------- atualização ---------- */
 async function atualizarApp(){
+  if(gravador && gravador.state!=='inactive'){ mensagem('Pare a gravação antes de atualizar.'); return; }
   try{
-    if('serviceWorker' in navigator){ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); }
-    if(window.caches){ for(const k of await caches.keys()) await caches.delete(k); }
+    if('serviceWorker' in navigator) for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    if(window.caches) for(const k of await caches.keys()) await caches.delete(k);
   }catch(e){}
   location.href = location.pathname + '?v=' + Date.now();
 }
-$('btnAtualizarApp').onclick = atualizarApp;
-$('btnAtualizarAgora').onclick = atualizarApp;
+$('btnAtualizarApp').onclick = atualizarApp; $('btnAtualizarAgora').onclick = atualizarApp;
 async function verificarVersao(){
-  if(location.protocol === 'file:') return;
+  if(location.protocol==='file:') return;
   try{
-    const r = await fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'});
-    const txt = await r.text();
+    const txt = await (await fetch(location.pathname+'?nocache='+Date.now(),{cache:'no-store'})).text();
     const m = txt.match(/const VERSAO\s*=\s*['"]([^'"]+)['"]/);
-    if(m && m[1] !== VERSAO){ $('avisoTxt').textContent = 'Nova versão ' + m[1] + ' disponível'; $('avisoVersao').classList.add('aberto'); }
+    if(m && m[1]!==VERSAO){ $('avisoTxt').textContent='Nova versão '+m[1]+' disponível'; $('avisoVersao').classList.add('aberto'); }
   }catch(e){}
 }
 verificarVersao(); setInterval(verificarVersao, 5*60*1000);
+$('btnAjustes').onclick = () => $('janAjustes').classList.add('aberto');
+$('ajFechar').onclick = () => $('janAjustes').classList.remove('aberto');
 
-/* ---------- ajustes ---------- */
-const cfg = JSON.parse(localStorage.getItem('arauto-cfg') || '{"host":"localhost","porta":"4455","senha":""}');
-function abrirAjustes(){ $('cfgHost').value=cfg.host; $('cfgPorta').value=cfg.porta; $('cfgSenha').value=cfg.senha; $('janAjustes').classList.add('aberto'); }
-$('btnAjustes').onclick = abrirAjustes;
-$('cfgFechar').onclick = () => $('janAjustes').classList.remove('aberto');
-$('cfgSalvar').onclick = () => {
-  cfg.host = $('cfgHost').value.trim() || 'localhost';
-  cfg.porta = $('cfgPorta').value.trim() || '4455';
-  cfg.senha = $('cfgSenha').value;
-  localStorage.setItem('arauto-cfg', JSON.stringify(cfg));
-  $('janAjustes').classList.remove('aberto');
-  reconectar();
-};
+/* ---------- fontes de vídeo e áudio ---------- */
+const vCam = document.createElement('video'), vTela = document.createElement('video');
+[vCam,vTela].forEach(v=>{ v.muted=true; v.playsInline=true; v.style.cssText='position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;left:0;top:0'; document.body.appendChild(v); });
+let streamCam=null, streamMic=null, streamTela=null;
+let actx=null, destino=null, analisador=null, noMic=null, noTela=null;
 
-/* ---------- confirmação ---------- */
-function confirmar(titulo, texto, rotulo){
-  return new Promise(res => {
-    $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confSim').textContent=rotulo;
-    $('janConfirma').classList.add('aberto');
-    $('confSim').onclick = () => { $('janConfirma').classList.remove('aberto'); res(true); };
-    $('confNao').onclick = () => { $('janConfirma').classList.remove('aberto'); res(false); };
-  });
+function iniciarAudio(){
+  actx = new (window.AudioContext||window.webkitAudioContext)();
+  destino = actx.createMediaStreamDestination();
+  analisador = actx.createAnalyser(); analisador.fftSize = 512;
 }
 
-/* ---------- conexão com o OBS (obs-websocket v5) ---------- */
-let ws = null, conectado = false, tentativa = null, reqId = 0;
-const pendentes = {};
-let cenaAtual = '', listaCenas = [];
-const saida = { gravar:{ativo:false,inicio:0}, transmitir:{ativo:false,inicio:0} };
-
-async function sha256b64(texto){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
-  return btoa(String.fromCharCode(...new Uint8Array(buf)));
-}
-
-function pedir(tipo, dados={}){
-  return new Promise((res, rej) => {
-    if(!conectado) return rej(new Error('Sem conexão'));
-    const id = 'r' + (++reqId);
-    pendentes[id] = {res, rej};
-    ws.send(JSON.stringify({op:6, d:{requestType:tipo, requestId:id, requestData:dados}}));
-    setTimeout(() => { if(pendentes[id]){ delete pendentes[id]; rej(new Error('Sem resposta do OBS')); } }, 8000);
-  });
-}
-
-function marcarStatus(ok, txt){
-  $('status').classList.toggle('ok', ok); $('statusTxt').textContent = txt;
-  $('btnGravar').disabled = !ok; $('btnTransmitir').disabled = !ok;
-}
-
-function conectar(){
-  clearTimeout(tentativa);
-  marcarStatus(false, 'Conectando…');
-  try{ ws = new WebSocket(`ws://${cfg.host}:${cfg.porta}`); }
-  catch(e){ marcarStatus(false,'Erro de conexão'); agendar(); return; }
-
-  ws.onmessage = async ev => {
-    const msg = JSON.parse(ev.data);
-    if(msg.op === 0){ // Hello
-      const ident = {rpcVersion:1, eventSubscriptions: 1|4|64}; // Geral + Cenas + Saídas
-      if(msg.d.authentication){
-        const {challenge, salt} = msg.d.authentication;
-        const segredo = await sha256b64(cfg.senha + salt);
-        ident.authentication = await sha256b64(segredo + challenge);
-      }
-      ws.send(JSON.stringify({op:1, d:ident}));
-    }
-    else if(msg.op === 2){ // Identified
-      conectado = true; marcarStatus(true, 'Conectado ao OBS');
-      carregarTudo();
-    }
-    else if(msg.op === 7){ // resposta
-      const p = pendentes[msg.d.requestId]; if(!p) return; delete pendentes[msg.d.requestId];
-      if(msg.d.requestStatus.result) p.res(msg.d.responseData || {});
-      else p.rej(new Error(msg.d.requestStatus.comment || 'Erro no OBS'));
-    }
-    else if(msg.op === 5){ evento(msg.d.eventType, msg.d.eventData || {}); }
+async function listarDispositivos(){
+  const devs = await navigator.mediaDevices.enumerateDevices();
+  const preencher = (sel, tipo, salvo) => {
+    sel.innerHTML='';
+    devs.filter(d=>d.kind===tipo).forEach((d,i)=>{
+      const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||((tipo==='videoinput'?'Câmera ':'Microfone ')+(i+1)); sel.appendChild(o);
+    });
+    if(salvo && [...sel.options].some(o=>o.value===salvo)) sel.value=salvo;
   };
-  ws.onclose = ev => {
-    conectado = false;
-    if(ev.code === 4009){ marcarStatus(false,'Senha incorreta'); mensagem('Senha do OBS incorreta. Confira nos Ajustes.', 4000); }
-    else marcarStatus(false,'Desconectado');
-    agendar();
-  };
-  ws.onerror = () => {};
+  preencher($('selCam'),'videoinput',ler('cam',''));
+  preencher($('selMic'),'audioinput',ler('mic',''));
 }
-function agendar(){ clearTimeout(tentativa); tentativa = setTimeout(conectar, 3000); }
-function reconectar(){ if(ws){ ws.onclose=null; try{ws.close();}catch(e){} } conectado=false; conectar(); }
 
-async function carregarTudo(){
+async function ligarCamera(id){
+  if(streamCam) streamCam.getTracks().forEach(t=>t.stop());
   try{
-    const c = await pedir('GetSceneList');
-    listaCenas = c.scenes.slice().reverse().map(s => s.sceneName); // mesma ordem do OBS
-    cenaAtual = c.currentProgramSceneName;
-    desenharCenas();
-    const g = await pedir('GetRecordStatus');
-    definirSaida('gravar', g.outputActive, g.outputDuration);
-    const t = await pedir('GetStreamStatus');
-    definirSaida('transmitir', t.outputActive, t.outputDuration);
-  }catch(e){ mensagem(e.message); }
+    streamCam = await navigator.mediaDevices.getUserMedia({video:{deviceId:id?{exact:id}:undefined,width:{ideal:1920},height:{ideal:1080}}});
+    vCam.srcObject=streamCam; await vCam.play(); guardar('cam',id||'');
+  }catch(e){ streamCam=null; mensagem('Não consegui abrir a câmera.'); }
 }
-
-function evento(tipo, d){
-  if(tipo === 'CurrentProgramSceneChanged'){ cenaAtual = d.sceneName; desenharCenas(); }
-  else if(tipo === 'SceneListChanged' || tipo === 'SceneNameChanged' || tipo === 'SceneCreated' || tipo === 'SceneRemoved'){ carregarTudo(); }
-  else if(tipo === 'RecordStateChanged'){
-    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED') definirSaida('gravar', true, 0);
-    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPED'){ definirSaida('gravar', false); if(d.outputPath) mensagem('Gravação salva: ' + d.outputPath.split('/').pop(), 5000); }
-  }
-  else if(tipo === 'StreamStateChanged'){
-    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED') definirSaida('transmitir', true, 0);
-    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPED') definirSaida('transmitir', false);
-  }
+async function ligarMic(id){
+  if(streamMic) streamMic.getTracks().forEach(t=>t.stop());
+  if(noMic){ try{noMic.disconnect();}catch(e){} noMic=null; }
+  try{
+    streamMic = await navigator.mediaDevices.getUserMedia({audio:{deviceId:id?{exact:id}:undefined,echoCancellation:true,noiseSuppression:true}});
+    noMic = actx.createMediaStreamSource(streamMic); noMic.connect(destino); noMic.connect(analisador); guardar('mic',id||'');
+  }catch(e){ streamMic=null; mensagem('Não consegui abrir o microfone.'); }
 }
+$('selCam').onchange = e => ligarCamera(e.target.value);
+$('selMic').onchange = e => ligarMic(e.target.value);
 
-/* ---------- tela ---------- */
-function desenharCenas(){
-  const box = $('cenas'); box.innerHTML = '';
-  if(!listaCenas.length){ box.innerHTML = '<div class="vazio">Nenhuma cena no OBS.</div>'; return; }
-  listaCenas.forEach(nome => {
-    const b = document.createElement('button');
-    b.className = 'cena' + (nome === cenaAtual ? ' noar' : '');
-    b.textContent = nome;
-    b.onclick = () => pedir('SetCurrentProgramScene', {sceneName:nome}).catch(e => mensagem(e.message));
-    box.appendChild(b);
-  });
-}
-
-function definirSaida(qual, ativo, duracao=0){
-  saida[qual].ativo = !!ativo;
-  saida[qual].inicio = ativo ? Date.now() - (duracao||0) : 0;
-  const btn = qual==='gravar' ? $('btnGravar') : $('btnTransmitir');
-  btn.classList.toggle('ativo', !!ativo);
-  if(qual==='gravar') $('gravarTxt').textContent = ativo ? '■ Parar gravação' : '● Gravar';
-  else $('transmitirTxt').textContent = ativo ? '■ Encerrar transmissão' : '📡 Transmitir';
-  if(!ativo) $(qual==='gravar'?'gravarTempo':'transmitirTempo').textContent = '00:00:00';
-}
-setInterval(() => {
-  if(saida.gravar.ativo) $('gravarTempo').textContent = fmt(Date.now()-saida.gravar.inicio);
-  if(saida.transmitir.ativo) $('transmitirTempo').textContent = fmt(Date.now()-saida.transmitir.inicio);
-}, 500);
-
-$('btnGravar').onclick = async () => {
-  try{ await pedir(saida.gravar.ativo ? 'StopRecord' : 'StartRecord'); }catch(e){ mensagem(e.message); }
+$('btnAtivar').onclick = async () => {
+  try{
+    const s = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    s.getTracks().forEach(t=>t.stop());
+  }catch(e){ mensagem('Permissão negada. Libere câmera e microfone no cadeado ao lado do endereço.',5000); return; }
+  iniciarAudio();
+  await listarDispositivos();
+  await ligarCamera($('selCam').value); await ligarMic($('selMic').value);
+  $('janInicio').classList.remove('aberto');
 };
-$('btnTransmitir').onclick = async () => {
-  const ok = saida.transmitir.ativo
-    ? await confirmar('Encerrar transmissão?', 'A live vai sair do ar para todos.', 'Encerrar')
-    : await confirmar('Entrar ao vivo?', 'A transmissão vai começar no destino configurado no OBS (YouTube, etc.).', 'Entrar ao vivo');
-  if(!ok) return;
-  try{ await pedir(saida.transmitir.ativo ? 'StopStream' : 'StartStream'); }catch(e){ mensagem(e.message); }
+
+$('btnTela').onclick = async () => {
+  try{
+    const s = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30,width:{ideal:1920},height:{ideal:1080}},audio:true});
+    if(streamTela) streamTela.getTracks().forEach(t=>t.stop());
+    if(noTela){ try{noTela.disconnect();}catch(e){} noTela=null; }
+    streamTela = s; vTela.srcObject=s; await vTela.play();
+    if(s.getAudioTracks().length){ noTela = actx.createMediaStreamSource(new MediaStream(s.getAudioTracks())); noTela.connect(destino); }
+    s.getVideoTracks()[0].onended = () => { streamTela=null; vTela.srcObject=null; $('btnTela').textContent='🖥️ Escolher tela ou janela'; mensagem('O compartilhamento da tela foi encerrado.'); };
+    $('btnTela').textContent='🖥️ Trocar tela ou janela';
+  }catch(e){ /* cancelado */ }
 };
+
+/* ---------- medidor do microfone ---------- */
+const NB=10; for(let i=0;i<NB;i++) $('barras').appendChild(document.createElement('i'));
+const buf = new Uint8Array(512);
+function medir(){
+  if(!analisador) return;
+  analisador.getByteTimeDomainData(buf);
+  let s=0; for(const v of buf){ const x=(v-128)/128; s+=x*x; }
+  const nivel = Math.min(1, Math.sqrt(s/buf.length)*4);
+  [...$('barras').children].forEach((b,i)=>{ const on=i<Math.round(nivel*NB); b.className=on?('on'+(i>=8?' pico':i>=6?' alto':'')):''; });
+}
+
+/* ---------- composição na tela ---------- */
+const tela=$('tela'), ctx=tela.getContext('2d');
+let aspecto = ler('aspecto','169');
+let cena = ler('cena','pip'), cenaAnterior=null, inicioFade=0;
+const FADE=350;
+let pos = ler('pos',{ '169':{x:.72,y:.70,w:.26}, '916':{x:.55,y:.62,w:.40} });
+
+function W(){ return tela.width; } function H(){ return tela.height; }
+function caixaCam(){
+  const p=pos[aspecto], w=p.w*W(), h=aspecto==='169'? w*9/16 : w*4/3;
+  return {x:p.x*W(), y:p.y*H(), w, h};
+}
+function pronto(v){ return v.srcObject && v.videoWidth>0; }
+function cobrir(v,x,y,w,h){
+  const r=Math.max(w/v.videoWidth,h/v.videoHeight), sw=w/r, sh=h/r;
+  ctx.drawImage(v,(v.videoWidth-sw)/2,(v.videoHeight-sh)/2,sw,sh,x,y,w,h);
+}
+function conter(v,x,y,w,h){
+  const r=Math.min(w/v.videoWidth,h/v.videoHeight), dw=v.videoWidth*r, dh=v.videoHeight*r;
+  ctx.drawImage(v,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+}
+function vazio(txt,x,y,w,h){
+  ctx.fillStyle='#15233f'; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle='#9fb0d0'; ctx.font=`${Math.round(Math.min(w,h)/14)}px -apple-system,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(txt,x+w/2,y+h/2);
+}
+function desenharTela(x,y,w,h){ if(pronto(vTela)) conter(vTela,x,y,w,h); else vazio('Escolha a tela à direita',x,y,w,h); }
+function desenharCam(x,y,w,h){ if(pronto(vCam)) cobrir(vCam,x,y,w,h); else vazio('Sem câmera',x,y,w,h); }
+function moldura(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); }
+
+function desenharCena(c){
+  const w=W(), h=H();
+  ctx.fillStyle='#0F1B33'; ctx.fillRect(0,0,w,h);
+  if(c==='cam') desenharCam(0,0,w,h);
+  else if(c==='screen') desenharTela(0,0,w,h);
+  else if(c==='split'){
+    if(aspecto==='169'){ const m=Math.round(w*.62); desenharTela(20,20,m-30,h-40); ctx.save(); moldura(m+10,20,w-m-30,h-40,18); ctx.clip(); desenharCam(m+10,20,w-m-30,h-40); ctx.restore(); }
+    else { const m=Math.round(h*.45); desenharTela(20,20,w-40,m-30); ctx.save(); moldura(20,m+10,w-40,h-m-30,18); ctx.clip(); desenharCam(20,m+10,w-40,h-m-30); ctx.restore(); }
+  }
+  else if(c==='pip'){
+    desenharTela(0,0,w,h);
+    const b=caixaCam(), r=Math.round(b.w*.06);
+    ctx.save(); moldura(b.x,b.y,b.w,b.h,r); ctx.clip(); desenharCam(b.x,b.y,b.w,b.h); ctx.restore();
+    ctx.lineWidth=Math.max(3,w/400); ctx.strokeStyle='#C9A227'; moldura(b.x,b.y,b.w,b.h,r); ctx.stroke();
+  }
+}
+function quadro(){
+  const t = cenaAnterior ? Math.min(1,(performance.now()-inicioFade)/FADE) : 1;
+  if(cenaAnterior && t<1){ ctx.globalAlpha=1; desenharCena(cenaAnterior); ctx.globalAlpha=t; desenharCena(cena); ctx.globalAlpha=1; }
+  else { cenaAnterior=null; desenharCena(cena); }
+  medir(); atualizarRelogio();
+}
+// relógio num "worker": continua rodando mesmo com a aba em segundo plano
+const tic = new Worker(URL.createObjectURL(new Blob(['let t;onmessage=e=>{clearInterval(t);t=setInterval(()=>postMessage(0),e.data)}'],{type:'text/javascript'})));
+tic.onmessage = quadro; tic.postMessage(1000/30);
+
+function trocarCena(c){
+  if(c===cena) return;
+  cenaAnterior=cena; cena=c; inicioFade=performance.now(); guardar('cena',c);
+  document.querySelectorAll('.cena').forEach(b=>b.classList.toggle('ativa', b.dataset.l===c));
+  $('blocoTam').style.display = c==='pip' ? '' : 'none';
+  tela.classList.toggle('arrastavel', c==='pip');
+  atualizarMini();
+}
+document.querySelectorAll('.cena').forEach(b=> b.onclick = () => trocarCena(b.dataset.l));
+
+function aplicarAspecto(a){
+  aspecto=a; guardar('aspecto',a);
+  tela.width = a==='169'?1920:1080; tela.height = a==='169'?1080:1920;
+  $('a169').classList.toggle('ativo',a==='169'); $('a916').classList.toggle('ativo',a==='916');
+  $('tamCam').value = Math.round(pos[a].w*100);
+}
+$('a169').onclick=()=>aplicarAspecto('169'); $('a916').onclick=()=>aplicarAspecto('916');
+$('tamCam').oninput = e => { const p=pos[aspecto]; p.w=e.target.value/100; limitar(); guardar('pos',pos); };
+function limitar(){ const p=pos[aspecto], b=caixaCam(); p.x=Math.min(Math.max(p.x,0),(W()-b.w)/W()); p.y=Math.min(Math.max(p.y,0),(H()-b.h)/H()); }
+
+/* arrastar a janelinha da câmera */
+let arrasto=null;
+function ponto(e){ const r=tela.getBoundingClientRect(); return {x:(e.clientX-r.left)*W()/r.width, y:(e.clientY-r.top)*H()/r.height}; }
+tela.addEventListener('pointerdown', e=>{
+  if(cena!=='pip') return;
+  const p=ponto(e), b=caixaCam();
+  if(p.x>=b.x && p.x<=b.x+b.w && p.y>=b.y && p.y<=b.y+b.h){ arrasto={dx:p.x-b.x, dy:p.y-b.y}; tela.setPointerCapture(e.pointerId); tela.style.cursor='grabbing'; }
+});
+tela.addEventListener('pointermove', e=>{
+  if(!arrasto) return; const p=ponto(e);
+  pos[aspecto].x=(p.x-arrasto.dx)/W(); pos[aspecto].y=(p.y-arrasto.dy)/H(); limitar();
+});
+tela.addEventListener('pointerup', ()=>{ if(arrasto){ arrasto=null; tela.style.cursor=''; guardar('pos',pos); } });
+
+/* ---------- gravação ---------- */
+let gravador=null, pedacos=[], acumulado=0, inicioTrecho=0, marcas=[], tipo='', ext='webm';
+const TIPOS=[['video/mp4;codecs=avc1,mp4a.40.2','mp4'],['video/mp4;codecs=avc1.640028,mp4a.40.2','mp4'],['video/mp4;codecs=avc1,opus','mp4'],['video/mp4','mp4'],['video/webm;codecs=vp9,opus','webm'],['video/webm','webm']];
+for(const [t,x] of TIPOS){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)){ tipo=t; ext=x; break; } }
+$('fmtInfo').textContent = tipo ? ext.toUpperCase() : 'não suportado neste navegador';
+
+function decorrido(){ return acumulado + (gravador && gravador.state==='recording' ? performance.now()-inicioTrecho : 0); }
+function fmt(ms){ const s=Math.floor(ms/1000); return [Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(n=>String(n).padStart(2,'0')).join(':'); }
+function fmtCap(ms){ const s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor(s%3600/60), ss=String(s%60).padStart(2,'0'); return h? `${h}:${String(m).padStart(2,'0')}:${ss}` : `${String(m).padStart(2,'0')}:${ss}`; }
+function atualizarRelogio(){
+  const t = gravador ? fmt(decorrido()) : '00:00:00';
+  $('relogio').textContent = t;
+  if(mini && mini.document.getElementById('mRel')) mini.document.getElementById('mRel').textContent = t;
+}
+
+function estadoBotoes(){
+  const st = gravador ? gravador.state : 'inactive';
+  $('rec').className = 'rec' + (st==='recording'?' gravando':st==='paused'?' pausado':'');
+  $('btnGravar').textContent = st==='inactive' ? '● Gravar' : '■ Parar';
+  $('btnGravar').classList.toggle('parar', st!=='inactive');
+  $('btnPausar').disabled = st==='inactive'; $('btnMarcar').disabled = st==='inactive';
+  $('btnPausar').textContent = st==='paused' ? '▶ Continuar' : '⏸ Pausar';
+  $('a169').disabled = $('a916').disabled = st!=='inactive';
+  atualizarMini();
+}
+
+function gravarOuParar(){
+  if(gravador && gravador.state!=='inactive'){ gravador.stop(); return; }
+  if(!tipo){ mensagem('Este navegador não grava vídeo. Use o Chrome.'); return; }
+  if(!actx){ mensagem('Ative a câmera e o microfone primeiro.'); return; }
+  if(actx.state==='suspended') actx.resume();
+  const fluxo = tela.captureStream(30);
+  destino.stream.getAudioTracks().forEach(t=>fluxo.addTrack(t));
+  pedacos=[]; marcas=[]; acumulado=0;
+  gravador = new MediaRecorder(fluxo,{mimeType:tipo, videoBitsPerSecond:8_000_000, audioBitsPerSecond:160_000});
+  gravador.ondataavailable = e => { if(e.data.size) pedacos.push(e.data); };
+  gravador.onstop = finalizar;
+  gravador.onpause = () => { acumulado += performance.now()-inicioTrecho; estadoBotoes(); };
+  gravador.onresume = () => { inicioTrecho = performance.now(); estadoBotoes(); };
+  gravador.start(1000); inicioTrecho = performance.now();
+  estadoBotoes();
+}
+function pausar(){
+  if(!gravador) return;
+  if(gravador.state==='recording') gravador.pause(); else if(gravador.state==='paused') gravador.resume();
+}
+function marcar(){
+  if(!gravador || gravador.state==='inactive') return;
+  const t=decorrido(); marcas.push(t);
+  mensagem(`🔖 Capítulo marcado em ${fmtCap(t)}`);
+}
+function finalizar(){
+  const total = decorrido();
+  const blob = new Blob(pedacos,{type:tipo.split(';')[0]});
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  const nome = `aula-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}-${p(d.getHours())}h${p(d.getMinutes())}.${ext}`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nome; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 60000);
+  gravador=null; estadoBotoes();
+  $('fimArquivo').textContent = `${nome} — ${fmt(total)}`;
+  if(marcas.length){
+    const lista = (marcas[0]>3000 ? [0,...marcas] : marcas.map((m,i)=>i===0?0:m));
+    $('capTexto').value = lista.map((m,i)=>`${fmtCap(m)} ${i===0?'Introdução':'Capítulo '+(i+1)}`).join('\n');
+    $('fimCap').style.display='';
+  } else $('fimCap').style.display='none';
+  $('btnCopiar').style.display = marcas.length ? '' : 'none';
+  $('janFim').classList.add('aberto');
+}
+$('btnGravar').onclick = gravarOuParar; $('btnPausar').onclick = pausar; $('btnMarcar').onclick = marcar;
+$('btnCopiar').onclick = async () => { try{ await navigator.clipboard.writeText($('capTexto').value); mensagem('Capítulos copiados'); }catch(e){ $('capTexto').select(); } };
+$('fimFechar').onclick = () => $('janFim').classList.remove('aberto');
+window.addEventListener('beforeunload', e => { if(gravador){ e.preventDefault(); e.returnValue=''; } });
+
+/* ---------- mini painel flutuante (fica por cima dos slides) ---------- */
+let mini=null;
+const NOMES={cam:'Câmera',pip:'Tela+Câm',split:'Dividida',screen:'Tela'};
+if(!('documentPictureInPicture' in window)) $('btnMini').style.display='none';
+$('btnMini').onclick = async () => {
+  if(mini){ mini.close(); return; }
+  mini = await documentPictureInPicture.requestWindow({width:340,height:190});
+  const d = mini.document;
+  d.head.innerHTML = `<style>
+    body{margin:0;background:#0F1B33;color:#f3f1ea;font-family:-apple-system,sans-serif;padding:10px;display:flex;flex-direction:column;gap:8px}
+    .top{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+    .g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.g2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+    button{border:1px solid #2b3f6e;background:#1d2f55;color:#f3f1ea;border-radius:9px;padding:9px 4px;font-size:13px;font-weight:600;cursor:pointer}
+    button.on{border-color:#C9A227;color:#C9A227} .rec{background:#d93636;border-color:#d93636;color:#fff}
+    .pt{display:inline-block;width:10px;height:10px;border-radius:50%;background:#9fb0d0;margin-right:6px}.pt.r{background:#d93636}.pt.p{background:#C9A227}
+  </style>`;
+  d.body.innerHTML = `<div class="top"><span><span class="pt" id="mPt"></span><span id="mRel">00:00:00</span></span><span style="font-family:serif;color:#C9A227;font-size:13px;letter-spacing:2px">ARAUTO</span></div>
+    <div class="g">${Object.entries(NOMES).map(([k,v])=>`<button data-l="${k}">${v}</button>`).join('')}</div>
+    <div class="g2"><button id="mGravar" class="rec">● Gravar</button><button id="mPausar">⏸ Pausar</button><button id="mMarcar">🔖 Capítulo</button></div>`;
+  d.querySelectorAll('[data-l]').forEach(b=> b.onclick=()=>trocarCena(b.dataset.l));
+  d.getElementById('mGravar').onclick=gravarOuParar; d.getElementById('mPausar').onclick=pausar; d.getElementById('mMarcar').onclick=marcar;
+  mini.addEventListener('pagehide', ()=>{ mini=null; $('btnMini').textContent='🪟 Mini painel flutuante'; });
+  $('btnMini').textContent='🪟 Fechar mini painel';
+  atualizarMini();
+};
+function atualizarMini(){
+  if(!mini) return; const d=mini.document; const st=gravador?gravador.state:'inactive';
+  d.querySelectorAll('[data-l]').forEach(b=>b.classList.toggle('on',b.dataset.l===cena));
+  const g=d.getElementById('mGravar'); if(g) g.textContent = st==='inactive'?'● Gravar':'■ Parar';
+  const pz=d.getElementById('mPausar'); if(pz){ pz.textContent = st==='paused'?'▶ Continuar':'⏸ Pausar'; pz.disabled = st==='inactive'; }
+  const mk=d.getElementById('mMarcar'); if(mk) mk.disabled = st==='inactive';
+  const pt=d.getElementById('mPt'); if(pt) pt.className='pt'+(st==='recording'?' r':st==='paused'?' p':'');
+}
 
 /* ---------- início ---------- */
-if(!cfg.senha) abrirAjustes();
-conectar();
+aplicarAspecto(aspecto);
+document.querySelectorAll('.cena').forEach(b=>b.classList.toggle('ativa', b.dataset.l===cena));
+$('blocoTam').style.display = cena==='pip' ? '' : 'none';
+tela.classList.toggle('arrastavel', cena==='pip');
+estadoBotoes();
 </script>
 </body>
 </html>
