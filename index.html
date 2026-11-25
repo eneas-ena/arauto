@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0F1B33">
+<title>Arauto — Painel de Transmissão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<!-- Login padrão (copie o porteiro.js de outro repositório seu para este) -->
+<script src="porteiro.js"></script>
+<style>
+  :root{
+    --navy:#0F1B33; --gold:#C9A227;
+    --bg:#0F1B33; --card:#17264a; --card2:#1e3160; --text:#f3f1ea; --muted:#9fb0d0;
+    --line:#2b3f6e; --red:#d93636; --green:#2fae5f;
+  }
+  body.claro{
+    --bg:#f4f1e8; --card:#ffffff; --card2:#ece6d3; --text:#0F1B33; --muted:#5b6785; --line:#d9d2bd;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;touch-action:manipulation}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       -webkit-user-select:none;user-select:none;transition:background .2s,color .2s}
+  button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+
+  header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .marca{font-family:Cinzel,serif;font-weight:700;font-size:22px;color:var(--gold);letter-spacing:2px}
+  .versao{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:2px 8px}
+  .espaco{flex:1}
+  .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+  .bolinha{width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(217,54,54,.2)}
+  .status.ok .bolinha{background:var(--green);box-shadow:0 0 0 3px rgba(47,174,95,.25)}
+  .icone{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:20px}
+
+  main{padding:18px;max-width:1100px;margin:0 auto}
+  h2{font-family:Cinzel,serif;font-size:15px;letter-spacing:1.5px;color:var(--gold);margin:6px 0 12px}
+
+  .cenas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+  .cena{background:var(--card);color:var(--text);border:2px solid var(--line);border-radius:16px;min-height:110px;
+        font-size:20px;font-weight:600;padding:14px;position:relative;transition:transform .08s,border-color .15s}
+  .cena:active{transform:scale(.97)}
+  .cena.noar{border-color:var(--red);background:linear-gradient(180deg,rgba(217,54,54,.22),var(--card))}
+  .cena.noar::after{content:"NO AR";position:absolute;top:8px;right:10px;font-size:11px;font-weight:800;
+        background:var(--red);color:#fff;padding:2px 7px;border-radius:6px;letter-spacing:1px}
+  .vazio{color:var(--muted);font-size:15px;padding:20px;border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
+
+  .controles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .ctrl{border:none;border-radius:16px;min-height:96px;font-size:20px;font-weight:700;color:#fff;background:var(--card2);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+  body.claro .ctrl{color:var(--text)}
+  .ctrl .tempo{font-size:15px;font-weight:500;opacity:.85;font-variant-numeric:tabular-nums}
+  .ctrl.ativo{background:var(--red);color:#fff;animation:pulsa 1.6s infinite}
+  @keyframes pulsa{50%{box-shadow:0 0 0 6px rgba(217,54,54,.25)}}
+  .ctrl:disabled,.cena:disabled{opacity:.4;cursor:not-allowed}
+
+  /* janelas */
+  .fundo{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+  .fundo.aberto{display:flex}
+  .janela{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;width:100%;max-width:420px}
+  .janela h3{font-family:Cinzel,serif;color:var(--gold);margin:0 0 14px}
+  .janela label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+  .janela input{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);-webkit-user-select:text;user-select:text}
+  .janela p{line-height:1.5}
+  .linha{display:flex;gap:10px;margin-top:18px}
+  .btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;font-weight:600}
+  .btn.ouro{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+  .btn.vermelho{background:var(--red);border-color:var(--red);color:#fff}
+  .dica{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+  .aviso{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--gold);color:var(--navy);
+         padding:12px 16px;border-radius:14px;font-weight:600;display:none;gap:12px;align-items:center;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+  .aviso.aberto{display:flex}
+  .aviso button{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-weight:700}
+  .msg{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--card2);color:var(--text);border:1px solid var(--line);
+       padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:30}
+  .msg.aberto{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="marca">ARAUTO</div>
+  <div class="versao" id="versao"></div>
+  <div class="espaco"></div>
+  <div class="status" id="status"><span class="bolinha"></span><span id="statusTxt">Desconectado</span></div>
+  <button class="icone" id="btnTema" title="Modo claro/escuro">☀️</button>
+  <button class="icone" id="btnAjustes" title="Ajustes">⚙️</button>
+</header>
+
+<main>
+  <h2>Cenas</h2>
+  <div class="cenas" id="cenas"><div class="vazio">Conecte ao OBS para ver as cenas.</div></div>
+
+  <h2>Controles</h2>
+  <div class="controles">
+    <button class="ctrl" id="btnGravar" disabled><span id="gravarTxt">● Gravar</span><span class="tempo" id="gravarTempo">00:00:00</span></button>
+    <button class="ctrl" id="btnTransmitir" disabled><span id="transmitirTxt">📡 Transmitir</span><span class="tempo" id="transmitirTempo">00:00:00</span></button>
+  </div>
+</main>
+
+<!-- Ajustes -->
+<div class="fundo" id="janAjustes">
+  <div class="janela">
+    <h3>Ajustes</h3>
+    <label>Endereço do OBS</label>
+    <input id="cfgHost" placeholder="localhost">
+    <label>Porta</label>
+    <input id="cfgPorta" placeholder="4455" inputmode="numeric">
+    <label>Senha do WebSocket</label>
+    <input id="cfgSenha" type="password" placeholder="senha mostrada no OBS">
+    <div class="linha">
+      <button class="btn" id="cfgFechar">Fechar</button>
+      <button class="btn ouro" id="cfgSalvar">Salvar e conectar</button>
+    </div>
+    <div class="linha">
+      <button class="btn" id="btnAtualizarApp">🔄 Atualizar app</button>
+    </div>
+    <div class="dica">No OBS: Ferramentas → Configurações do servidor WebSocket → "Mostrar informações de conexão". Use o Chrome neste mesmo Mac.</div>
+  </div>
+</div>
+
+<!-- Confirmação -->
+<div class="fundo" id="janConfirma">
+  <div class="janela">
+    <h3 id="confTitulo">Confirmar</h3>
+    <p id="confTexto"></p>
+    <div class="linha">
+      <button class="btn" id="confNao">Cancelar</button>
+      <button class="btn vermelho" id="confSim">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="aviso" id="avisoVersao"><span id="avisoTxt">Nova versão disponível</span><button id="btnAtualizarAgora">Atualizar agora</button></div>
+<div class="msg" id="msg"></div>
+
+<script>
+const VERSAO = '0.1.0';
+
+/* ---------- utilidades ---------- */
+const $ = id => document.getElementById(id);
+$('versao').textContent = 'v' + VERSAO;
+function mensagem(t, ms=2500){ const m=$('msg'); m.textContent=t; m.classList.add('aberto'); clearTimeout(m._t); m._t=setTimeout(()=>m.classList.remove('aberto'),ms); }
+function fmt(ms){ const s=Math.floor(ms/1000); return [s/3600,(s%3600)/60,s%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':'); }
+
+/* ---------- tema sol/lua ---------- */
+function aplicarTema(t){ document.body.classList.toggle('claro', t==='claro'); $('btnTema').textContent = t==='claro' ? '🌙' : '☀️'; }
+let tema = localStorage.getItem('arauto-tema') || 'escuro';
+aplicarTema(tema);
+$('btnTema').onclick = () => { tema = tema==='claro' ? 'escuro' : 'claro'; localStorage.setItem('arauto-tema', tema); aplicarTema(tema); };
+
+/* ---------- impedir zoom por duplo toque (iPad) ---------- */
+let ultimoToque = 0;
+document.addEventListener('touchend', e => { const a=Date.now(); if(a-ultimoToque<350) e.preventDefault(); ultimoToque=a; }, {passive:false});
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+/* ---------- atualização do app ---------- */
+async function atualizarApp(){
+  try{
+    if('serviceWorker' in navigator){ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); }
+    if(window.caches){ for(const k of await caches.keys()) await caches.delete(k); }
+  }catch(e){}
+  location.href = location.pathname + '?v=' + Date.now();
+}
+$('btnAtualizarApp').onclick = atualizarApp;
+$('btnAtualizarAgora').onclick = atualizarApp;
+async function verificarVersao(){
+  if(location.protocol === 'file:') return;
+  try{
+    const r = await fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'});
+    const txt = await r.text();
+    const m = txt.match(/const VERSAO\s*=\s*['"]([^'"]+)['"]/);
+    if(m && m[1] !== VERSAO){ $('avisoTxt').textContent = 'Nova versão ' + m[1] + ' disponível'; $('avisoVersao').classList.add('aberto'); }
+  }catch(e){}
+}
+verificarVersao(); setInterval(verificarVersao, 5*60*1000);
+
+/* ---------- ajustes ---------- */
+const cfg = JSON.parse(localStorage.getItem('arauto-cfg') || '{"host":"localhost","porta":"4455","senha":""}');
+function abrirAjustes(){ $('cfgHost').value=cfg.host; $('cfgPorta').value=cfg.porta; $('cfgSenha').value=cfg.senha; $('janAjustes').classList.add('aberto'); }
+$('btnAjustes').onclick = abrirAjustes;
+$('cfgFechar').onclick = () => $('janAjustes').classList.remove('aberto');
+$('cfgSalvar').onclick = () => {
+  cfg.host = $('cfgHost').value.trim() || 'localhost';
+  cfg.porta = $('cfgPorta').value.trim() || '4455';
+  cfg.senha = $('cfgSenha').value;
+  localStorage.setItem('arauto-cfg', JSON.stringify(cfg));
+  $('janAjustes').classList.remove('aberto');
+  reconectar();
+};
+
+/* ---------- confirmação ---------- */
+function confirmar(titulo, texto, rotulo){
+  return new Promise(res => {
+    $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confSim').textContent=rotulo;
+    $('janConfirma').classList.add('aberto');
+    $('confSim').onclick = () => { $('janConfirma').classList.remove('aberto'); res(true); };
+    $('confNao').onclick = () => { $('janConfirma').classList.remove('aberto'); res(false); };
+  });
+}
+
+/* ---------- conexão com o OBS (obs-websocket v5) ---------- */
+let ws = null, conectado = false, tentativa = null, reqId = 0;
+const pendentes = {};
+let cenaAtual = '', listaCenas = [];
+const saida = { gravar:{ativo:false,inicio:0}, transmitir:{ativo:false,inicio:0} };
+
+async function sha256b64(texto){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+function pedir(tipo, dados={}){
+  return new Promise((res, rej) => {
+    if(!conectado) return rej(new Error('Sem conexão'));
+    const id = 'r' + (++reqId);
+    pendentes[id] = {res, rej};
+    ws.send(JSON.stringify({op:6, d:{requestType:tipo, requestId:id, requestData:dados}}));
+    setTimeout(() => { if(pendentes[id]){ delete pendentes[id]; rej(new Error('Sem resposta do OBS')); } }, 8000);
+  });
+}
+
+function marcarStatus(ok, txt){
+  $('status').classList.toggle('ok', ok); $('statusTxt').textContent = txt;
+  $('btnGravar').disabled = !ok; $('btnTransmitir').disabled = !ok;
+}
+
+function conectar(){
+  clearTimeout(tentativa);
+  marcarStatus(false, 'Conectando…');
+  try{ ws = new WebSocket(`ws://${cfg.host}:${cfg.porta}`); }
+  catch(e){ marcarStatus(false,'Erro de conexão'); agendar(); return; }
+
+  ws.onmessage = async ev => {
+    const msg = JSON.parse(ev.data);
+    if(msg.op === 0){ // Hello
+      const ident = {rpcVersion:1, eventSubscriptions: 1|4|64}; // Geral + Cenas + Saídas
+      if(msg.d.authentication){
+        const {challenge, salt} = msg.d.authentication;
+        const segredo = await sha256b64(cfg.senha + salt);
+        ident.authentication = await sha256b64(segredo + challenge);
+      }
+      ws.send(JSON.stringify({op:1, d:ident}));
+    }
+    else if(msg.op === 2){ // Identified
+      conectado = true; marcarStatus(true, 'Conectado ao OBS');
+      carregarTudo();
+    }
+    else if(msg.op === 7){ // resposta
+      const p = pendentes[msg.d.requestId]; if(!p) return; delete pendentes[msg.d.requestId];
+      if(msg.d.requestStatus.result) p.res(msg.d.responseData || {});
+      else p.rej(new Error(msg.d.requestStatus.comment || 'Erro no OBS'));
+    }
+    else if(msg.op === 5){ evento(msg.d.eventType, msg.d.eventData || {}); }
+  };
+  ws.onclose = ev => {
+    conectado = false;
+    if(ev.code === 4009){ marcarStatus(false,'Senha incorreta'); mensagem('Senha do OBS incorreta. Confira nos Ajustes.', 4000); }
+    else marcarStatus(false,'Desconectado');
+    agendar();
+  };
+  ws.onerror = () => {};
+}
+function agendar(){ clearTimeout(tentativa); tentativa = setTimeout(conectar, 3000); }
+function reconectar(){ if(ws){ ws.onclose=null; try{ws.close();}catch(e){} } conectado=false; conectar(); }
+
+async function carregarTudo(){
+  try{
+    const c = await pedir('GetSceneList');
+    listaCenas = c.scenes.slice().reverse().map(s => s.sceneName); // mesma ordem do OBS
+    cenaAtual = c.currentProgramSceneName;
+    desenharCenas();
+    const g = await pedir('GetRecordStatus');
+    definirSaida('gravar', g.outputActive, g.outputDuration);
+    const t = await pedir('GetStreamStatus');
+    definirSaida('transmitir', t.outputActive, t.outputDuration);
+  }catch(e){ mensagem(e.message); }
+}
+
+function evento(tipo, d){
+  if(tipo === 'CurrentProgramSceneChanged'){ cenaAtual = d.sceneName; desenharCenas(); }
+  else if(tipo === 'SceneListChanged' || tipo === 'SceneNameChanged' || tipo === 'SceneCreated' || tipo === 'SceneRemoved'){ carregarTudo(); }
+  else if(tipo === 'RecordStateChanged'){
+    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED') definirSaida('gravar', true, 0);
+    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPED'){ definirSaida('gravar', false); if(d.outputPath) mensagem('Gravação salva: ' + d.outputPath.split('/').pop(), 5000); }
+  }
+  else if(tipo === 'StreamStateChanged'){
+    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED') definirSaida('transmitir', true, 0);
+    if(d.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPED') definirSaida('transmitir', false);
+  }
+}
+
+/* ---------- tela ---------- */
+function desenharCenas(){
+  const box = $('cenas'); box.innerHTML = '';
+  if(!listaCenas.length){ box.innerHTML = '<div class="vazio">Nenhuma cena no OBS.</div>'; return; }
+  listaCenas.forEach(nome => {
+    const b = document.createElement('button');
+    b.className = 'cena' + (nome === cenaAtual ? ' noar' : '');
+    b.textContent = nome;
+    b.onclick = () => pedir('SetCurrentProgramScene', {sceneName:nome}).catch(e => mensagem(e.message));
+    box.appendChild(b);
+  });
+}
+
+function definirSaida(qual, ativo, duracao=0){
+  saida[qual].ativo = !!ativo;
+  saida[qual].inicio = ativo ? Date.now() - (duracao||0) : 0;
+  const btn = qual==='gravar' ? $('btnGravar') : $('btnTransmitir');
+  btn.classList.toggle('ativo', !!ativo);
+  if(qual==='gravar') $('gravarTxt').textContent = ativo ? '■ Parar gravação' : '● Gravar';
+  else $('transmitirTxt').textContent = ativo ? '■ Encerrar transmissão' : '📡 Transmitir';
+  if(!ativo) $(qual==='gravar'?'gravarTempo':'transmitirTempo').textContent = '00:00:00';
+}
+setInterval(() => {
+  if(saida.gravar.ativo) $('gravarTempo').textContent = fmt(Date.now()-saida.gravar.inicio);
+  if(saida.transmitir.ativo) $('transmitirTempo').textContent = fmt(Date.now()-saida.transmitir.inicio);
+}, 500);
+
+$('btnGravar').onclick = async () => {
+  try{ await pedir(saida.gravar.ativo ? 'StopRecord' : 'StartRecord'); }catch(e){ mensagem(e.message); }
+};
+$('btnTransmitir').onclick = async () => {
+  const ok = saida.transmitir.ativo
+    ? await confirmar('Encerrar transmissão?', 'A live vai sair do ar para todos.', 'Encerrar')
+    : await confirmar('Entrar ao vivo?', 'A transmissão vai começar no destino configurado no OBS (YouTube, etc.).', 'Entrar ao vivo');
+  if(!ok) return;
+  try{ await pedir(saida.transmitir.ativo ? 'StopStream' : 'StartStream'); }catch(e){ mensagem(e.message); }
+};
+
+/* ---------- início ---------- */
+if(!cfg.senha) abrirAjustes();
+conectar();
+</script>
+</body>
+</html>
